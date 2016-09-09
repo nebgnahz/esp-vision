@@ -1,0 +1,7 @@
+[package]
+name = "esp-vision"
+version = "0.1.0"
+authors = ["Ben Zhang <benzh@cs.berkeley.edu>"]
+
+[dependencies]
+rust_vision = { git = "ssh://git@github.com/nebgnahz/rust_vision" }
