@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `esp_vision` crate.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, esp_vision">
+
+    <title>esp_vision - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'></p><script>window.sidebarCurrent = {name: 'esp_vision', ty: 'mod', relpath: '../'};</script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content mod">
+<h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>esp_vision</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-0' class='srclink' href='../src/esp_vision/src/main.rs.html#1-180' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>Example applications that demonstrate how to use OpenCV and ESP.</p>
+
+<ul>
+<li>OpenCV is wrapped by a Rust library (currently a private repository)</li>
+<li><p><a href="https://github.com/damellis/ESP">ESP</a>: Example-based Sensor Predictions</p>
+
+<p>This application runs OpenCV
+<a href="http://docs.opencv.org/3.1.0/db/df8/tutorial_py_meanshift.html">CAMShift</a>
+algorithm. Users select a region to track and the centroid of the tracked
+region is sent over to ESP (through a TCP connection).</p>
+
+<h1 id='getting-started' class='section-header'><a href='#getting-started'>Getting Started</a></h1>
+<p>Below is a possible ESP example that you can use (note the TCP port <code>8001</code>).</p>
+
+<pre><code class="language-c++">#include &lt;ESP.h&gt;
+
+TcpInputStream stream(8001, 2);
+GestureRecognitionPipeline pipeline;
+
+int timeout = 500;      // milliseconds
+double null_rej = 0.4;
+
+void setup() {
+ stream.setLabelsForAllDimensions({&quot;x&quot;, &quot;y&quot;, &quot;z&quot;});
+ useInputStream(stream);
+
+ DTW dtw(false, true, null_rej);
+ dtw.enableTrimTrainingData(true, 0.1, 75);
+
+ pipeline.setClassifier(dtw);
+ pipeline.addPostProcessingModule(ClassLabelTimeoutFilter(timeout));
+ usePipeline(pipeline);
+
+ registerTuneable(
+     null_rej, 0.1, 5.0, &quot;Variability&quot;,
+     &quot;How different from the training data a new gesture can be and &quot;
+     &quot;still be considered the same gesture. The higher the number, the &quot;
+     &quot;more different it can be.&quot;,
+     [](double new_null_rej) {
+         pipeline.getClassifier()-&gt;setNullRejectionCoeff(new_null_rej);
+         pipeline.getClassifier()-&gt;recomputeNullRejectionThresholds();
+     });
+
+ registerTuneable(
+     timeout, 1, 3000, &quot;Timeout&quot;,
+     &quot;How long (in milliseconds) to wait after recognizing a &quot;
+     &quot;gesture before recognizing another one.&quot;,
+     [](double new_timeout) {
+         ClassLabelTimeoutFilter* filter =
+             dynamic_cast&lt;ClassLabelTimeoutFilter*&gt;(
+                 pipeline.getPostProcessingModule(0));
+         assert(filter != nullptr);
+         filter-&gt;setTimeoutDuration(new_timeout);
+     });
+}
+</code></pre>
+
+<p>After running the ESP example, in this application, type <code>cargo run</code> would
+bring up the application.</p>
+
+<p>Enjoy watching yourself :)</p></li>
+</ul>
+</div><h2 id='reexports' class='section-header'><a href="#reexports">Reexports</a></h2>
+<table><tr><td><code>extern crate <a class='mod' href='https://doc.rust-lang.org/nightly/std/index.html' title='std'>std</a> as std;</code></td></tr><tr><td><code>extern crate <a class='mod' href='../rust_vision/index.html' title='rust_vision'>rust_vision</a>;</code></td></tr><tr><td><code>use std::prelude::v1::*;</code></td></tr><tr><td><code>use <a class='mod' href='../rust_vision/index.html' title='rust_vision'>rust_vision</a>::*;</code></td></tr><tr><td><code>use std::io::<a class='mod' href='https://doc.rust-lang.org/nightly/std/io/prelude/index.html' title='std::io::prelude'>prelude</a>::*;</code></td></tr><tr><td><code>use std::net::<a class='struct' href='https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html' title='std::net::tcp::TcpStream'>TcpStream</a>;</code></td></tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.SelectionStatus.html'
+                                  title='esp_vision::SelectionStatus'>SelectionStatus</a></td>
+                           <td class='docblock short'>
+                                <p><code>SelectionStatus</code> tracks the region that users have selected for tracking.</p>
+                           </td>
+                       </tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.main.html'
+                                  title='esp_vision::main'>main</a></td>
+                           <td class='docblock short'>
+                                <p>The entry point to the application. Click into
+<a href="../src/esp_vision/src/main.rs.html#103-180">source</a> for more information.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.on_mouse.html'
+                                  title='esp_vision::on_mouse'>on_mouse</a></td>
+                           <td class='docblock short'>
+                                <p>Mouse callback function. This gets called whenever a mouse event
+happens. Specifically in the implementation here we are populating the
+<code>SelectionStatus</code> struct so that CAMShift will track the right region.</p>
+                           </td>
+                       </tr></table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "esp_vision";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script defer src="../search-index.js"></script>
+</body>
+</html>
