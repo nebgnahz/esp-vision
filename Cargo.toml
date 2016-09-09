@@ -6,7 +6,7 @@ repository = "https://github.com/killercup/esp-vision.git"
 homepage = "https://github.com/nebgnahz/esp-vision.git"
 license = "MIT"
 readme = "README.md"
-documentation = "https://nebgnahz.github.io/esp-vision/esp-vision/index.html"
+documentation = "https://nebgnahz.github.io/esp-vision/esp_vision/index.html"
 description = "Use ESP to learn more from computer vision"
 
 [dependencies]
