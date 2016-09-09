@@ -1,4 +1,9 @@
-# Computer Vision (rust-vision) + Machine Learning (ESP)
+# CV + ESP + Machine Learning
 
+Example applications that demonstrate how to use OpenCV and ESP.
+
+- OpenCV is wrapped by a Rust library (currently a private repository)
 - [ESP](https://github.com/damellis/ESP): Example-based Sensor Predictions
-- rust-vision: currently a private repo...
+
+[Documentation](https://nebgnahz.github.io/esp-vision/esp-vision/index.html)
+
