@@ -1,13 +1,79 @@
+//! Example applications that demonstrate how to use OpenCV and ESP.
+//!
+//! - OpenCV is wrapped by a Rust library (currently a private repository)
+//! - [ESP](https://github.com/damellis/ESP): Example-based Sensor Predictions
+//!
+//! This application runs OpenCV
+//! [CAMShift](http://docs.opencv.org/3.1.0/db/df8/tutorial_py_meanshift.html)
+//! algorithm. Users select a region to track and the centroid of the tracked
+//! region is sent over to ESP (through a TCP connection).
+//!
+//! # Getting Started
+//!
+//! Below is a possible ESP example that you can use (note the TCP port `8001`).
+//!
+//! ```c++
+//! #include <ESP.h>
+//!
+//! TcpInputStream stream(8001, 2);
+//! GestureRecognitionPipeline pipeline;
+//!
+//! int timeout = 500;      // milliseconds
+//! double null_rej = 0.4;
+//!
+//! void setup() {
+//!     stream.setLabelsForAllDimensions({"x", "y", "z"});
+//!     useInputStream(stream);
+//!
+//!     DTW dtw(false, true, null_rej);
+//!     dtw.enableTrimTrainingData(true, 0.1, 75);
+//!
+//!     pipeline.setClassifier(dtw);
+//!     pipeline.addPostProcessingModule(ClassLabelTimeoutFilter(timeout));
+//!     usePipeline(pipeline);
+//!
+//!     registerTuneable(
+//!         null_rej, 0.1, 5.0, "Variability",
+//!         "How different from the training data a new gesture can be and "
+//!         "still be considered the same gesture. The higher the number, the "
+//!         "more different it can be.",
+//!         [](double new_null_rej) {
+//!             pipeline.getClassifier()->setNullRejectionCoeff(new_null_rej);
+//!             pipeline.getClassifier()->recomputeNullRejectionThresholds();
+//!         });
+//!
+//!     registerTuneable(
+//!         timeout, 1, 3000, "Timeout",
+//!         "How long (in milliseconds) to wait after recognizing a "
+//!         "gesture before recognizing another one.",
+//!         [](double new_timeout) {
+//!             ClassLabelTimeoutFilter* filter =
+//!                 dynamic_cast<ClassLabelTimeoutFilter*>(
+//!                     pipeline.getPostProcessingModule(0));
+//!             assert(filter != nullptr);
+//!             filter->setTimeoutDuration(new_timeout);
+//!         });
+//! }
+//!```
+//!
+//! After running the ESP example, in this application, type `cargo run` would
+//! bring up the application.
+//!
+//! Enjoy watching yourself :)
 extern crate rust_vision;
 use rust_vision::*;
 use std::io::prelude::*;
 use std::net::TcpStream;
 
+/// `SelectionStatus` tracks the region that users have selected for tracking.
 struct SelectionStatus {
     selection: Rect,
     status: bool,
 }
 
+/// Mouse callback function. This gets called whenever a mouse event
+/// happens. Specifically in the implementation here we are populating the
+/// `SelectionStatus` struct so that CAMShift will track the right region.
 fn on_mouse(e: i32, x: i32, y: i32, _: i32, data: MouseCallbackData) {
     let event: MouseEventTypes = unsafe { std::mem::transmute(e as u8) };
     match event {
@@ -32,6 +98,8 @@ fn on_mouse(e: i32, x: i32, y: i32, _: i32, data: MouseCallbackData) {
     }
 }
 
+/// The entry point to the application. Click into
+/// [source](../src/esp_vision/src/main.rs.html#103-180) for more information.
 fn main() {
     let mut stream = TcpStream::connect("127.0.0.1:8001")
         .ok()
