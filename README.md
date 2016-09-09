@@ -1,4 +1,4 @@
-# CV + ESP + Machine Learning
+# CV + ESP
 
 Example applications that demonstrate how to use OpenCV and ESP.
 
